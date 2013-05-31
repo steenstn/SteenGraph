@@ -8,6 +8,7 @@
 class Shader
 {
 	public:
+		Shader();
 		Shader(char* vertexFile, char* fragmentFile);
 
 		GLuint* GetProgram();

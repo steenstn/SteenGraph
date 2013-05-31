@@ -1,5 +1,7 @@
 #include "Shader.hpp"
 
+Shader::Shader()
+{}
 /*
 Constructor for the shader. Reads two files and creates vertex shader and fragment shader as
 well as links them

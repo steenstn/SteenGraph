@@ -6,9 +6,7 @@
 #include <GL/glfw.h>
 
 #include "Vector3.h"
-#include "Mesh.h"
-#include "VertexBufferObject.h"
-#include "IndexBufferObject.h"
+#include "RenderObject.hpp"
 #include "Shader.hpp"
 
 void Init(void);
@@ -16,7 +14,7 @@ void Shut_Down(int return_code);
 void Main_Loop(void);
 void Draw_Square(float red, float green, float blue);
 void Draw(void);
-void DrawMesh(VertexBufferObject* VBO, IndexBufferObject* IBO);
+void DrawMesh(RenderObject& r);
 
 float rotate_y = 0,
       rotate_z = 0;
@@ -30,6 +28,7 @@ IndexBufferObject* theIBO2;
 
 Shader* theShader;
 
+RenderObject* renderObject, *renderObject2;
 
 GLuint vbo_cube_normals;
 GLint attribute_coord3d;
@@ -68,8 +67,6 @@ void Init(void)
     fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
     return ;
   }
-	//Mesh* theMesh = new Mesh();
-
 	 GLfloat cube_vertices[] = {
    
 	  
@@ -162,9 +159,12 @@ void Init(void)
 
 	theShader = new Shader("triangle.v.glsl", "triangle.f.glsl");
 
+	renderObject = new RenderObject(*theVBO, *theIBO2, *theShader);
+	renderObject2 = new RenderObject(*theVBO2, *theIBO2, *theShader);
+
 	program = *theShader->GetProgram();
 	char* attribute_name = "coord3d";
-	attribute_coord3d= glGetAttribLocation(program, attribute_name);
+	attribute_coord3d = glGetAttribLocation(program, attribute_name);
 	if (attribute_coord3d == -1) {
 	fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
 	return;
@@ -215,13 +215,13 @@ void Main_Loop(void)
   }
 }
 
-void DrawMesh(VertexBufferObject* VBO, IndexBufferObject* IBO)
+void DrawMesh(RenderObject& r)
 {
 	glUseProgram(program);
-
+	
 	glEnableVertexAttribArray(attribute_coord3d);
 	/* Describe our vertices array to OpenGL (it can't guess its format automatically) */
-	glBindBuffer(GL_ARRAY_BUFFER, VBO->GetAdress());
+	glBindBuffer(GL_ARRAY_BUFFER, r.GetVBO()->GetAdress());
 	//glBindBuffer(GL_ARRAY_BUFFER, vbo_cube);
 	glVertexAttribPointer(
 	attribute_coord3d, // attribute
@@ -234,7 +234,7 @@ void DrawMesh(VertexBufferObject* VBO, IndexBufferObject* IBO)
 
   
 	/* Push each element in buffer_vertices to the vertex shader */
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO->GetAdress());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r.GetIBO()->GetAdress());
 	int size;
 	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 	glDrawElements(GL_QUADS, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
@@ -252,8 +252,8 @@ void Draw(void)
 	// apply the current rotation
 	glRotatef(rotate_y, 0, 1, 0);
 	glRotatef(rotate_z, 0, 0, 1);
-	DrawMesh(theVBO, theIBO);
+	DrawMesh(*renderObject);
 	
 	glTranslatef(0, 4, 5);
-	DrawMesh(theVBO2, theIBO2);
+	DrawMesh(*renderObject2);
 }

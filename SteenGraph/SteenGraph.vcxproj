@@ -63,7 +63,7 @@
   <ItemGroup>
     <ClCompile Include="IndexBufferObject.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="Vertex3.cpp" />
@@ -71,16 +71,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="functions.h" />
-    <ClInclude Include="IndexBufferObject.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="IndexBufferObject.hpp" />
+    <ClInclude Include="RenderObject.hpp" />
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="ShaderFunctions.h" />
     <ClInclude Include="SOIL.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vertex3.h" />
-    <ClInclude Include="VertexBufferObject.h" />
+    <ClInclude Include="VertexBufferObject.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

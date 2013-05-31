@@ -1,5 +1,7 @@
-#include "IndexBufferObject.h"
+#include "IndexBufferObject.hpp"
 
+IndexBufferObject::IndexBufferObject()
+{}
 IndexBufferObject::IndexBufferObject(GLushort* elementArray, GLsizeiptr size)
 {
 

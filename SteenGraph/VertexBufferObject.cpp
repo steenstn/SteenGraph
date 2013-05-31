@@ -1,4 +1,7 @@
-#include "VertexBufferObject.h"
+#include "VertexBufferObject.hpp"
+
+VertexBufferObject::VertexBufferObject()
+{}
 
 VertexBufferObject::VertexBufferObject(GLfloat* vertexArray, GLsizeiptr size)
 {
