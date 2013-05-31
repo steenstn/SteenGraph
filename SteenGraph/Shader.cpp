@@ -1,5 +1,9 @@
 #include "Shader.hpp"
 
+/*
+Constructor for the shader. Reads two files and creates vertex shader and fragment shader as
+well as links them
+*/
 Shader::Shader(char* vertexFile, char* fragmentFile)
 {
 	if((VertexShader = create_shader(vertexFile, GL_VERTEX_SHADER)) == 0)

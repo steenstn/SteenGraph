@@ -159,25 +159,6 @@ void Init(void)
 	
 	theVBO2 = new VertexBufferObject(cube_vertices,sizeof(cube_vertices));
 	theIBO2 = new IndexBufferObject(cube_elements,sizeof(cube_elements));
-	
-	/*
-	GLint link_ok = GL_FALSE;
-
-  GLuint vs, fs;
-  if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return;
-  if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return;
-
-  program = glCreateProgram();
-  glAttachShader(program, vs);
-  glAttachShader(program, fs);
-  glLinkProgram(program);
-  glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
-  if (!link_ok) {
-    fprintf(stderr, "glLinkProgram:");
-    print_log(program);
-    return;
-  }
-  */
 
 	theShader = new Shader("triangle.v.glsl", "triangle.f.glsl");
 
