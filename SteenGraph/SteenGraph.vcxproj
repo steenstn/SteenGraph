@@ -64,6 +64,7 @@
     <ClCompile Include="IndexBufferObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="Vertex3.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
@@ -73,6 +74,8 @@
     <ClInclude Include="IndexBufferObject.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="Shader.hpp" />
+    <ClInclude Include="ShaderFunctions.h" />
     <ClInclude Include="SOIL.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Vector3.h" />

@@ -1,7 +1,6 @@
 #pragma comment(lib,"glew32.lib")
-
-
 #pragma comment(lib,"opengl32.lib")
+
 #include <stdlib.h>
 #include <GL/glew.h>
 #include <GL/glfw.h>
@@ -10,22 +9,29 @@
 #include "Mesh.h"
 #include "VertexBufferObject.h"
 #include "IndexBufferObject.h"
+#include "Shader.hpp"
 
 void Init(void);
 void Shut_Down(int return_code);
 void Main_Loop(void);
 void Draw_Square(float red, float green, float blue);
 void Draw(void);
-void DrawMesh(void);
+void DrawMesh(VertexBufferObject* VBO, IndexBufferObject* IBO);
+
 float rotate_y = 0,
       rotate_z = 0;
 const float rotations_per_tick = .2;
  
 VertexBufferObject* theVBO;
 IndexBufferObject* theIBO;
-	
-GLuint vbo_cube;
-GLuint ibo_cube_elements, vbo_cube_normals;
+
+VertexBufferObject* theVBO2;
+IndexBufferObject* theIBO2;
+
+Shader* theShader;
+
+
+GLuint vbo_cube_normals;
 GLint attribute_coord3d;
 GLuint program;
 
@@ -35,88 +41,6 @@ int main(void)
   Main_Loop();
   Shut_Down(0);
 }
-
-void print_log(GLuint object)
-{
-  GLint log_length = 0;
-  if (glIsShader(object))
-    glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
-  else if (glIsProgram(object))
-    glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
-  else {
-    fprintf(stderr, "printlog: Not a shader or a program\n");
-    return;
-  }
- 
-  char* log = (char*)malloc(log_length);
- 
-  if (glIsShader(object))
-    glGetShaderInfoLog(object, log_length, NULL, log);
-  else if (glIsProgram(object))
-    glGetProgramInfoLog(object, log_length, NULL, log);
- 
-  fprintf(stderr, "%s", log);
-  int a;
-  std::cin >> a;
-  free(log);
-}
-
-char* file_read(const char* filename)
-{
-  FILE* in = fopen(filename, "rb");
-  if (in == NULL) return NULL;
- 
-  int res_size = BUFSIZ;
-  char* res = (char*)malloc(res_size);
-  int nb_read_total = 0;
- 
-  while (!feof(in) && !ferror(in)) {
-    if (nb_read_total + BUFSIZ > res_size) {
-      if (res_size > 10*1024*1024) break;
-      res_size = res_size * 2;
-      res = (char*)realloc(res, res_size);
-    }
-    char* p_res = res + nb_read_total;
-    nb_read_total += fread(p_res, 1, BUFSIZ, in);
-  }
- 
-  fclose(in);
-  res = (char*)realloc(res, nb_read_total + 1);
-  res[nb_read_total] = '\0';
-  return res;
-}
-GLuint create_shader(const char* filename, GLenum type)
-{
-  const GLchar* source = file_read(filename);
-  if (source == NULL) {
-    fprintf(stderr, "Error opening %s: ", filename); perror("");
-    return 0;
-  }
-  GLuint res = glCreateShader(type);
-  const GLchar* sources[2] = {
-#ifdef GL_ES_VERSION_2_0
-    "#version 100\n"
-    "#define GLES2\n",
-#else
-    "#version 120\n",
-#endif
-    source };
-  glShaderSource(res, 2, sources, NULL);
-  free((void*)source);
- 
-  glCompileShader(res);
-  GLint compile_ok = GL_FALSE;
-  glGetShaderiv(res, GL_COMPILE_STATUS, &compile_ok);
-  if (compile_ok == GL_FALSE) {
-    fprintf(stderr, "%s:", filename);
-    print_log(res);
-    glDeleteShader(res);
-    return 0;
-  }
- 
-  return res;
-}
-
 
 void Init(void)
 {
@@ -233,7 +157,10 @@ void Init(void)
 	theVBO = new VertexBufferObject(cube_vertices,sizeof(cube_vertices));
 	theIBO = new IndexBufferObject(cube_elements,sizeof(cube_elements));
 	
-
+	theVBO2 = new VertexBufferObject(cube_vertices,sizeof(cube_vertices));
+	theIBO2 = new IndexBufferObject(cube_elements,sizeof(cube_elements));
+	
+	/*
 	GLint link_ok = GL_FALSE;
 
   GLuint vs, fs;
@@ -250,15 +177,19 @@ void Init(void)
     print_log(program);
     return;
   }
+  */
 
-  char* attribute_name = "coord3d";
-  attribute_coord3d= glGetAttribLocation(program, attribute_name);
-  if (attribute_coord3d == -1) {
-    fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-    return;
-  }
+	theShader = new Shader("triangle.v.glsl", "triangle.f.glsl");
+
+	program = *theShader->GetProgram();
+	char* attribute_name = "coord3d";
+	attribute_coord3d= glGetAttribLocation(program, attribute_name);
+	if (attribute_coord3d == -1) {
+	fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
+	return;
+	}
   
- glUseProgram(program);
+	glUseProgram(program);
 
 }
  
@@ -293,24 +224,23 @@ void Main_Loop(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // draw the figure
     Draw();
-	DrawMesh();
+	
 	// reset view matrix
 	glLoadIdentity();
 	// move view back a bit
-	glTranslatef(0, 4, -30);
 	
     // swap back and front buffers
     glfwSwapBuffers();
   }
 }
 
-void DrawMesh(void)
+void DrawMesh(VertexBufferObject* VBO, IndexBufferObject* IBO)
 {
 	glUseProgram(program);
 
 	glEnableVertexAttribArray(attribute_coord3d);
 	/* Describe our vertices array to OpenGL (it can't guess its format automatically) */
-	glBindBuffer(GL_ARRAY_BUFFER, theVBO->GetAdress());
+	glBindBuffer(GL_ARRAY_BUFFER, VBO->GetAdress());
 	//glBindBuffer(GL_ARRAY_BUFFER, vbo_cube);
 	glVertexAttribPointer(
 	attribute_coord3d, // attribute
@@ -323,49 +253,26 @@ void DrawMesh(void)
 
   
 	/* Push each element in buffer_vertices to the vertex shader */
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theIBO->GetAdress());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO->GetAdress());
 	int size;
 	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
 	glDrawElements(GL_QUADS, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 	glDisableVertexAttribArray(attribute_coord3d);
 
 }
- 
-void Draw_Square(float red, float green, float blue)
-{
-  // Draws a square with a gradient color at coordinates 0, 10
-  glBegin(GL_QUADS);
-  {
-    glColor3f(red, green, blue);
-    glVertex2i(1, 11);
-    glColor3f(red * .8, green * .8, blue * .8);
-    glVertex2i(-1, 11);
-    glColor3f(red * .5, green * .5, blue * .5);
-    glVertex2i(-1, 9);
-    glColor3f(red * .8, green * .8, blue * .8);
-    glVertex2i(1, 9);
-  }
-  glEnd();
-}
+
  
 void Draw(void)
 {
-  // reset view matrix
-  glLoadIdentity();
-  // move view back a bit
-  glTranslatef(0, 0, -30);
-  // apply the current rotation
-  glRotatef(rotate_y, 0, 1, 0);
-  glRotatef(rotate_z, 0, 0, 1);
-  // by repeatedly rotating the view matrix during drawing, the
-  // squares end up in a circle
-  int i = 0, squares = 15;
-  float red = 0, blue = 1;
-  for (; i < squares; ++i){
-    glRotatef(360.0/squares, 0, 0, 1);
-    // colors change for each square
-    red += 1.0/12;
-    blue -= 1.0/12;
-    Draw_Square(red, .6, blue);
-  }
+	// reset view matrix
+	glLoadIdentity();
+	// move view back a bit
+	glTranslatef(0, 0, -30);
+	// apply the current rotation
+	glRotatef(rotate_y, 0, 1, 0);
+	glRotatef(rotate_z, 0, 0, 1);
+	DrawMesh(theVBO, theIBO);
+	
+	glTranslatef(0, 4, 5);
+	DrawMesh(theVBO2, theIBO2);
 }
